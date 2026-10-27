@@ -65,7 +65,7 @@ npm install
 
 ### 2. Configuration (.env)
 Créez un fichier .env à la racine pour lier votre base de données :
-
+```bash
 Code snippet
 PORT=3000
 DB_HOST=192.168.1.101
@@ -74,6 +74,7 @@ DB_USER=bkge
 DB_PASSWORD=#rorododo71
 DB_NAME=swipe_and_cook_db
 JWT_SECRET=votre_cle_secrete_jwt
+```
 
 ### 3. Base de données
 Assurez-vous d'avoir exécuté le fichier de création init.sql pour créer les tables nécessaires.
