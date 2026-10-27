@@ -68,11 +68,11 @@ Créez un fichier .env à la racine pour lier votre base de données :
 ```bash
 Code snippet
 PORT=3000
-DB_HOST=192.168.1.101
+DB_HOST=IP
 DB_PORT=5432
-DB_USER=bkge
-DB_PASSWORD=#rorododo71
-DB_NAME=swipe_and_cook_db
+DB_USER=USERNAME
+DB_PASSWORD=PASSWORD
+DB_NAME=NAME
 JWT_SECRET=votre_cle_secrete_jwt
 ```
 
