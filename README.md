@@ -1,73 +1,92 @@
-🍳 Swipe & Cook — Backend API & Infrastructure
+# 🍳 Swipe & Cook — Backend API
 
-API REST backend pour l'application iOS Swipe & Cook, hébergée sur une infrastructure Proxmox (LXC) avec Node.js, PostgreSQL et Cloudflare Tunnels.
+L'API REST monolithique propulsant l'application iOS native *Swipe & Cook*. Elle est conçue avec **Node.js** et **Express** pour gérer l'authentification (JWT), les requêtes de recettes, le panier d'ingrédients et la synchronisation sécurisée des favoris utilisateur.
 
-🛠️ Stack Technique
+---
 
-Serveur API : Node.js 20, Express.js
+## 🏗️ Architecture du Serveur (Proxmox VE)
 
-Base de données : PostgreSQL 16 (via Docker)
+Pour assurer une isolation parfaite des processus et des sauvegardes indépendantes, l'infrastructure serveur est hébergée sous **Proxmox VE** et scindée en deux conteneurs LXC distincts :
 
-Gestionnaire de BDD : Adminer (via Docker)
+### 1. LXC 100 (`lxc-postgres`) : Base de données
+* **IP Locale :** `192.168.1.101`
+* **Moteur :** Docker
+* **Base de données :** PostgreSQL 16 (Image `postgres:16-alpine`)
+* **Interface de Gestion :** Adminer (sur le port 8080)
+* **Objectif :** Héberger les données (`swipe_and_cook_db`) de manière persistante sur disque SSD, isolées du serveur web.
 
-Sécurité & Auth : JWT (JSON Web Tokens) & Bcrypt
+### 2. LXC 101 (`lxc-api`) : Serveur Web & API
+* **IP Locale :** `192.168.1.102`
+* **Serveur d'Exécution :** Node.js 20, géré en daemon par **PM2**
+* **Réseau Externe :** Cloudflare Zero Trust Tunnel (URL HTTPS gratuite `.trycloudflare.com`)
+* **Objectif :** Faire tourner le code Express de l'API et exposer la connexion sécurisée sur Internet.
 
-Gestionnaire de processus : PM2
+---
 
-Exposition sécurisée : Cloudflare Zero Trust Tunnel
+## 🛠️ Stack Technique
 
-Infrastructure : Proxmox VE (Conteneurs LXC)
+* **Langage & Runtime :** JavaScript (Node.js v20+)
+* **Framework Web :** Express.js
+* **Base de données :** PostgreSQL 16 (Driver `pg`)
+* **Sécurité & Auth :** JSON Web Tokens (`jsonwebtoken`), Hachage `bcrypt`
+* **Gestionnaire de processus :** PM2
+* **Proxy / HTTPS :** Cloudflare Tunnel
+* **Monitoring des requêtes :** Morgan
 
-🏗️ Architecture HomeLab
+---
 
-Le projet est divisé de manière sécurisée en deux conteneurs LXC distincts :
+## 🔌 Routes Principales
 
-LXC 100 (lxc-postgres - 192.168.1.101) : Héberge le moteur de base de données.
+### 🔓 Routes Publiques (Découverte)
+* `GET /api/recipes` : Récupère la liste des recettes (Filtres supportés : `search` via `unaccent`, `tag`, `random`, `limit`).
+* `GET /api/recipes/:id` : Récupère le détail d'une recette ainsi que la liste jointurée de ses ingrédients.
 
-Conteneur Docker swipe_cook_db (PostgreSQL sur le port 5432).
+### 🔐 Authentification (Utilisateurs)
+* `POST /api/users/register` : Inscription d'un utilisateur, hachage Bcrypt, et retour du Token JWT.
+* `POST /api/users/login` : Connexion utilisateur et génération du Token JWT.
+* `GET /api/users/me` : Profil de l'utilisateur connecté *(exige le Bearer Token)*.
 
-Conteneur Docker swipe_cook_adminer (Interface web sur le port 8080).
+### ❤️ Favoris (Nécessite le Token JWT)
+* `GET /api/users/favorites` : Récupération des favoris avec leurs données et ingrédients agrégés en JSON via sous-requête `LATERAL`.
+* `POST /api/users/favorites/batch` : Synchronisation globale du cache local iOS vers la base de données PostgreSQL.
 
-LXC 101 (lxc-api - 192.168.1.102) : Héberge la logique métier.
+---
 
-API Express exécutée et maintenue en vie via PM2 (Port 3000).
+## 🚀 Installation & Déploiement Local
 
-Démon cloudflared pour relier l'API à l'application iOS.
+Pour faire tourner cette API sur votre machine de développement (ex: macOS) :
 
-🚀 Installation & Lancement
+### 1. Cloner le projet et installer les dépendances
+```bash
+git clone [https://github.com/romaindblr/swipe-and-cook-api.git](https://github.com/romaindblr/swipe-and-cook-api.git)
+cd swipe-and-cook-api
+npm install
+```
 
-1. Variables d'environnement
+### 2. Configuration (.env)
+Créez un fichier .env à la racine pour lier votre base de données :
 
-Créer un fichier .env à la racine de l'API (ne jamais le publier sur GitHub) :
-
+Code snippet
 PORT=3000
 DB_HOST=192.168.1.101
 DB_PORT=5432
 DB_USER=bkge
-DB_PASSWORD="#votre_mot_de_passe"
+DB_PASSWORD=#rorododo71
 DB_NAME=swipe_and_cook_db
 JWT_SECRET=votre_cle_secrete_jwt
 
+### 3. Base de données
+Assurez-vous d'avoir exécuté le fichier de création init.sql pour créer les tables nécessaires.
 
-2. Base de données
+### 4. Démarrage de l'API
+Bash
+# Lancement simple
+npm start
 
-Restaurer la structure de la base de données et les tables en injectant le fichier init.sql dans le conteneur PostgreSQL :
-
-docker exec -i swipe_cook_db psql -U bkge -d swipe_and_cook_db < init.sql
-
-
-L'interface d'administration Adminer est ensuite accessible en local sur http://192.168.1.101:8080 pour gérer les données visuellement.
-
-3. Lancer l'API
-
-Installer les dépendances et démarrer le serveur de production :
-
-npm install
+# Mode production avec PM2 (recommandé)
+npm install -g pm2
 pm2 start index.js --name swipe-cook-api
 pm2 save
 
-
-📄 Licence
-
-Projet développé à titre personnel par Romain Doublier.
-Tous droits réservés.
+---
+*Projet développé par Romain Doublier.*
