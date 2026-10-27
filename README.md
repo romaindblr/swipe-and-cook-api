@@ -58,7 +58,7 @@ Pour faire tourner cette API sur votre machine de développement (ex: macOS) :
 
 ### 1. Cloner le projet et installer les dépendances
 ```bash
-git clone [https://github.com/romaindblr/swipe-and-cook-api.git](https://github.com/romaindblr/swipe-and-cook-api.git)
+git clone https://github.com/romaindblr/swipe-and-cook-api.git
 cd swipe-and-cook-api
 npm install
 ```
