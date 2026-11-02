@@ -9,14 +9,14 @@ L'API REST monolithique propulsant l'application iOS native *Swipe & Cook*. Elle
 Pour assurer une isolation parfaite des processus et des sauvegardes indépendantes, l'infrastructure serveur est hébergée sous **Proxmox VE** et scindée en deux conteneurs LXC distincts :
 
 ### 1. LXC 100 (`lxc-postgres`) : Base de données
-* **IP Locale :** `192.168.1.101`
+* **IP Locale :** `192.168.1.X`
 * **Moteur :** Docker
 * **Base de données :** PostgreSQL 16 (Image `postgres:16-alpine`)
 * **Interface de Gestion :** Adminer (sur le port 8080)
 * **Objectif :** Héberger les données (`swipe_and_cook_db`) de manière persistante sur disque SSD, isolées du serveur web.
 
 ### 2. LXC 101 (`lxc-api`) : Serveur Web & API
-* **IP Locale :** `192.168.1.102`
+* **IP Locale :** `192.168.1.X`
 * **Serveur d'Exécution :** Node.js 20, géré en daemon par **PM2**
 * **Réseau Externe :** Cloudflare Zero Trust Tunnel (URL HTTPS gratuite `.trycloudflare.com`)
 * **Objectif :** Faire tourner le code Express de l'API et exposer la connexion sécurisée sur Internet.
